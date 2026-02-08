@@ -1,2 +1,40 @@
-.csv
-.sh
+# Data Files
+*.csv
+*.xlsx
+*.xls
+*.json
+dataset.csv
+*.parquet
+
+# Shell scripts with credentials
+commands.sh
+*.sh
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+.Python
+*.egg-info/
+*.egg
+build/
+dist/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Environment variables
+.env
+.env.local
+
+# Kaggle cache
+.kaggle/
+.cache/
