@@ -1,0 +1,6 @@
+pandas
+sqlalchemy
+tqdm
+click
+kagglehub
+psycopg2-binary
