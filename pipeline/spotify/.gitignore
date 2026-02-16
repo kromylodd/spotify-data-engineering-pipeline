@@ -1,3 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.env
+.env.local
+.env.*.local
+
 # Data Files
 *.csv
 *.xlsx
@@ -6,35 +49,38 @@
 dataset.csv
 *.parquet
 
-# Shell scripts with credentials
-commands.sh
-*.sh
-
-# Python artifacts
-__pycache__/
-*.py[cod]
-*.pyc
-*.pyo
-.Python
-*.egg-info/
-*.egg
-build/
-dist/
-
-# Virtual environments
-venv/
-env/
-.venv/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-
-# Environment variables
-.env
-.env.local
-
-# Kaggle cache
+# Kaggle / Dataset Cache
 .kaggle/
 .cache/
+~/.cache/kagglehub/
+
+# Docker & Docker Compose
+.dockerignore
+docker-compose.override.yml
+.docker/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Kestra
+kestra/
+kestra_data/
+kestra-wd/
+/tmp/kestra-wd/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
