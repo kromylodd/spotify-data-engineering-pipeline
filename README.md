@@ -82,3 +82,64 @@ A dashboard was created in Google Looker Studio to visualize:
 
 The dashboard enables exploration of genre trends and track characteristics.
 //there will be a screenshot
+
+Reproducibility Section
+Prerequisites
+
+Google Cloud account
+
+Docker installed
+
+Kestra running locally
+
+Google Cloud Storage bucket
+
+BigQuery dataset
+
+Service account credentials
+
+Setup Steps
+
+Clone repository
+
+git clone <repo-url>
+cd spotify-data-pipeline
+
+
+Configure Google Cloud
+
+create project
+
+create GCS bucket
+
+create BigQuery dataset
+
+create service account
+
+download credentials
+
+Configure Kestra KV store
+
+GCP_CREDS
+GCP_PROJECT_ID
+GCP_BUCKET_NAME
+GCP_DATASET
+GCP_LOCATION
+
+
+Start Kestra
+
+docker compose up
+
+
+Run pipeline
+
+gcp_spotify_data_ingest
+
+Output
+
+cleaned dataset in GCS
+
+table in BigQuery
+
+transformed table
