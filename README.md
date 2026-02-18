@@ -75,4 +75,10 @@ It demonstrates core data engineering concepts:
   - Valence
 
 
+A dashboard was created in Google Looker Studio to visualize:
 
+- Track distribution by genre
+- Average popularity per genre
+
+The dashboard enables exploration of genre trends and track characteristics.
+//there will be a screenshot
