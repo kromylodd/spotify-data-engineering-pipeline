@@ -1,4 +1,4 @@
-#🎧 Spotify Data Engineering Pipeline
+🎧 Spotify Data Engineering Pipeline
 
 A production-style end-to-end data engineering pipeline that ingests, transforms, and analyzes Spotify track data to produce analytics-ready datasets in a cloud data warehouse.
 
