@@ -39,18 +39,6 @@ Textual flow:
 
 Raw CSV (`dataset.csv`) → Kestra download → Pandas cleaning → GCS (cleaned CSV) → BigQuery staging → BigQuery optimized table → Looker Studio
 
-Mermaid diagram (GitHub renders fenced `mermaid` blocks):
-
-```mermaid
-flowchart LR
-  A[Raw CSV (dataset.csv)] --> B[Kestra: download_csv]
-  B --> C[Kestra: clean_csv (Pandas)]
-  C --> D[GCS: cleaned_dataset.csv]
-  D --> E[BigQuery: spotify_tracks (staging)]
-  E --> F[BigQuery: spotify_tracks_clean (PARTITIONED & CLUSTERED)]
-  F --> G[Looker Studio Dashboard]
-```
-
 ---
 
 ## Technologies Used
