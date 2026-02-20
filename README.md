@@ -21,13 +21,15 @@ Raw datasets often include accidental index columns and other junk columns, caus
 
 **Solution Overview**
 
-- Kestra flows implement an end-to-end DAG that:
-  1. Downloads the raw CSV (`download_csv`)
-  2. Cleans with Pandas selecting an exact column list (`clean_csv`)
-  3. Uploads the cleaned CSV to GCS (`upload_to_gcs`)
-  4. Loads the staging table in BigQuery (`load_to_bq`)
-  5. Creates/replaces an optimized analytics table (`transform_spotify_table`)
-  6. Dashboard consumes the optimized table
+Kestra flows implement an end-to-end DAG that:
+
+- Downloads the raw CSV (`download_csv`)
+- Cleans with Pandas selecting an exact column list (`clean_csv`)
+- Uploads the cleaned CSV to GCS (`upload_to_gcs`)
+- Loads the staging table in BigQuery (`load_to_bq`)
+- Creates/replaces an optimized analytics table (`transform_spotify_table`)
+- Dashboard consumes the optimized table
+
 
 - Flows include idempotent setup (`gcp_setup`) and KV initialization (`gcp_kv`).
 
