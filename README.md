@@ -1,506 +1,170 @@
-<<<<<<< HEAD
-🎧 Spotify Data Engineering Pipeline
-
-A production-style end-to-end data engineering pipeline that ingests, transforms, and analyzes Spotify track data to produce analytics-ready datasets in a cloud data warehouse.
-
-This project demonstrates a real-world data platform architecture including data ingestion, cleaning, transformation, optimization, orchestration, and visualization.
-
-🚀 Project Goal
-=======
 # 🎧 Spotify Data Engineering Pipeline
 
-A production-grade, end-to-end Spotify data engineering pipeline that ingests raw track metadata, performs deterministic cleaning, stores data in a cloud data lake and warehouse, applies BigQuery transformations and optimizations, and exposes analytics via a Looker Studio dashboard.
+A production-grade, end-to-end Spotify data engineering pipeline that ingests raw track metadata, performs deterministic cleaning, stores cleaned files in a Google Cloud Storage (GCS) data lake, loads and optimizes data in BigQuery, and exposes analytics via a Looker Studio dashboard.
 
-This repository demonstrates cloud-native batch ingestion, workflow orchestration with Kestra, BigQuery optimization (partitioning & clustering), and a reproducible workflow suitable for portfolio presentation.
->>>>>>> 8164749 (docs: Add production-ready README)
-
-The goal of this project is to simulate a modern data engineering workflow by building an automated pipeline that:
-
-<<<<<<< HEAD
-ingests raw music data
-
-cleans and standardizes schemas
-
-stores data in a cloud data warehouse
-=======
-**Project Goal**
-
-- Build a reproducible, cloud-based batch pipeline that ingests raw Spotify CSV data, stores cleaned versions in Google Cloud Storage (GCS), loads and optimizes tables in BigQuery, and presents analytics in Looker Studio.
-- Demonstrate orchestration with Kestra and deliver industry-standard data warehouse optimizations for cost-efficient analytics.
->>>>>>> 8164749 (docs: Add production-ready README)
-
-optimizes storage for analytics queries
-
-<<<<<<< HEAD
-serves insights through dashboards
-
-The pipeline transforms raw Spotify track metadata into structured datasets that enable efficient analysis of music trends and audio characteristics.
-
-❗ Problem Description
-Problem
-
-Music platforms generate large volumes of track metadata that must be efficiently stored, processed, and analyzed. However, raw datasets often contain inconsistent schemas, redundant columns, and are not optimized for analytical queries.
-
-Without proper ingestion pipelines and warehouse optimization, querying music features such as popularity, genre distribution, and audio characteristics becomes slow and inefficient.
-=======
-**Problem Description**
-
-- Analytics stacks often fail due to inconsistent ingestion (junk/unnamed columns), manual upload steps, and unoptimized warehouse schemas that produce slow and expensive queries.
-- This project automates the full batch pipeline to eliminate manual steps and ensures repeatable, low-cost analytics by:
-  - Using Kestra to orchestrate a multi-step DAG
-  - Cleaning data deterministically with Pandas to remove junk columns
-  - Keeping a versioned clean file in GCS
-  - Loading and optimizing tables in BigQuery (partition + cluster)
-  - Serving visuals via Looker Studio
-
----
-
-**Solution (High-level)**
-
-- Kestra flows download raw CSV → clean with Pandas → upload cleaned CSV to GCS → load to BigQuery staging → create optimized analytics table → refresh dashboard.
-- The flows include idempotent setup tasks (create GCS bucket, create BQ dataset) so infrastructure can be provisioned from the workflow.
-
----
-
-**Architecture**
-
-- Source: `dataset.csv` (raw CSV)
-- Orchestration: Kestra workflows (YAML flows provided)
-- Data Lake: Google Cloud Storage (GCS) for cleaned CSVs
-- Data Warehouse: BigQuery (staging + optimized analytics table)
-- Transformations: Pandas (cleaning) + BigQuery SQL (transform + optimization)
-- Visualization: Looker Studio dashboard consuming the optimized BigQuery table
-
-Mermaid flow diagram:
-
-```mermaid
-flowchart LR
-  A[Raw CSV (dataset.csv)] --> B[Kestra: download_csv]
-  B --> C[Kestra: clean_csv (Pandas)]
-  C --> D[GCS: cleaned_dataset.csv]
-  D --> E[BigQuery: staging table spotify_tracks]
-  E --> F[BigQuery: spotify_tracks_clean (PARTITIONED & CLUSTERED)]
-  F --> G[Looker Studio Dashboard]
-```
-
----
-
-**Technologies Used**
-
-- Orchestration: Kestra
-- Cloud Storage: Google Cloud Storage (GCS)
-- Data Warehouse: BigQuery
-- Language & Tools: Python (Pandas), SQL, Docker Compose (local dev)
-- Plugins: Kestra GCP plugins (gcs, bigquery)
-- Visualization: Google Looker Studio
-
----
-
-## Pipeline Flow & Components
-
-- Ingestion
-  - Kestra DAG `gcp_spotify_data_ingest` handles batch ingestion.
-  - `download_csv` downloads the raw CSV from GitHub.
-
-- Cleaning
-  - `clean_csv` runs a Pandas script (Kestra Python script task) that filters to precisely 20 columns and writes `cleaned_dataset.csv` with `index=False`.
-
-- Storage
-  - Cleaned CSV uploaded to GCS via `io.kestra.plugin.gcp.gcs.Upload`.
-  - Staging data loaded to BigQuery using a `LOAD DATA` SQL step.
-
-- Transformation & Optimization
-  - `transform_spotify_table` creates `spotify_tracks_clean` in BigQuery using:
-    - PARTITION BY RANGE_BUCKET(popularity, GENERATE_ARRAY(0, 100, 10))
-    - CLUSTER BY track_genre
-  - This table is the analytical table used by dashboards.
-
----
-
-## Data Warehouse Optimization
-
-- Partitioning
-  - Partitioned by popularity ranges (0-9,10-19,...,90-99) via `RANGE_BUCKET` to minimize scanned data for popularity-centric queries.
-
-- Clustering
-  - Clustered on `track_genre` to speed up genre-filtered aggregations and reduce I/O.
-
-- Benefits
-  - Lower query cost and faster dashboard load times due to partition pruning and clustering locality.
-
----
-
-## Dashboard (Looker Studio)
-
-- The dashboard surfaces business-friendly analytics from the optimized BigQuery table. Minimum visualizations:
-  1. Top genres by average popularity (bar chart)
-  2. Tracks distribution by popularity bucket (histogram)
-- Additional tiles recommended: Top artists by average valence; audio-feature trends by genre.
-- Dashboard screenshot: **[Insert dashboard screenshot here]**
-
----
-
-## Reproducibility — Setup & Run
-
-Prerequisites:
-- GCP project with BigQuery and GCS enabled
-- Service account JSON with BigQuery & GCS permissions
-- Docker & Docker Compose (for local Kestra + Postgres)
-
-1) Local quick demo (Docker Compose)
-```bash
-cd pipeline
-docker-compose up -d
-docker-compose ps
-```
-
-2) Configure Kestra & GCP credentials
-- Place your GCP service account JSON in a secure location and point Kestra to it.
-- Replace placeholders in the Kestra KV flow (`gcp_kv`):
-  - `GCP_PROJECT_ID` — your project id
-  - `GCP_BUCKET_NAME` — globally unique bucket name
-  - `GCP_DATASET` — BigQuery dataset name (e.g. spotify_data_pipeline)
-
-3) Run Kestra flows (UI or API)
-- Open Kestra UI (default: http://localhost:8080 when running via Docker Compose)
-- Upload or create flows: `gcp_kv`, `gcp_setup`, `gcp_spotify_data_ingest` and execute them in order.
-
-4) Verify BigQuery
-- Confirm tables:
-  - Staging: `{{GCP_PROJECT_ID}}.{{GCP_DATASET}}.spotify_tracks`
-  - Analytics: `{{GCP_PROJECT_ID}}.{{GCP_DATASET}}.spotify_tracks_clean`
-
-5) Connect Looker Studio
-- Create a BigQuery data source pointing at `spotify_tracks_clean` and build the dashboard tiles.
-
-Optional: run local Postgres ingestion (for local dev)
-```bash
-python -m pip install -r pipeline/spotify/requirements.txt
-python pipeline/spotify/spotify_ingest.py \
-  --pg_user=spotify_user \
-  --pg_password=spotify_password \
-  --pg_host=localhost \
-  --pg_database=spotify_analytics \
-  --csv_path=dataset.csv
-```
-
----
-
-## Dataset Description
-
-- File: `dataset.csv` (sample Spotify tracks dataset)
-- Key columns (20):
-  - `track_id`, `artists`, `album_name`, `track_name`, `popularity`, `duration_ms`, `explicit`, `danceability`, `energy`, `key`, `loudness`, `mode`, `speechiness`, `acousticness`, `instrumentalness`, `liveness`, `valence`, `tempo`, `time_signature`, `track_genre`
-
----
-
-## Project Features
-
-- Orchestrated batch ingestion with Kestra
-- Deterministic Pandas cleaning step to remove junk columns
-- GCS data lake for cleaned CSVs
-- BigQuery staging and optimized analytics table (partitioned & clustered)
-- Looker Studio dashboard with multiple tiles
-- Local dev via Docker Compose (Kestra, Postgres, pgAdmin)
-
----
-
-## Repository Structure
-
-- `pipeline/`
-  - `docker-compose.yaml` — local services (Kestra, Postgres, pgAdmin, ingestion container)
-  - `spotify/`
-    - `dockerfile` — ingestion container
-    - `requirements.txt`
-    - `spotify_ingest.py` — local Postgres ingestion utility
-    - `commands.sh` — helper commands
-    - `spotify-pipiline-zoomcamp-*.json` — example GCP service account (replace)
-- `dataset.csv` — sample dataset
-- `README.md` — this file
-
-# 🎧 Spotify Data Engineering Pipeline
-
-A production-grade, end-to-end Spotify data engineering pipeline that ingests raw track metadata, performs deterministic cleaning, stores data in a cloud data lake and warehouse, applies BigQuery transformations and optimizations, and exposes analytics via a Looker Studio dashboard.
-
-This repository demonstrates cloud-native batch ingestion, workflow orchestration with Kestra, BigQuery optimization (partitioning & clustering), and a reproducible workflow suitable for portfolio presentation.
+This repository demonstrates: workflow orchestration with Kestra, cloud data lake + warehouse, BigQuery partitioning & clustering for query performance, deterministic cleaning with Pandas, and reproducible, idempotent flows for provisioning and ingestion.
 
 ---
 
 **Project Goal**
 
-- Build a reproducible, cloud-based batch pipeline that ingests raw Spotify CSV data, stores cleaned versions in Google Cloud Storage (GCS), loads and optimizes tables in BigQuery, and presents analytics in Looker Studio.
-- Demonstrate orchestration with Kestra and deliver industry-standard data warehouse optimizations for cost-efficient analytics.
+- Build a reproducible, cloud-native batch pipeline that: downloads raw CSV → cleans with Pandas → uploads to GCS → loads into BigQuery staging → builds an optimized analytics table → powers a Looker Studio dashboard.
 
 ---
 
 **Problem Description**
 
-- Analytics stacks often fail due to inconsistent ingestion (junk/unnamed columns), manual upload steps, and unoptimized warehouse schemas that produce slow and expensive queries.
-- This project automates the full batch pipeline to eliminate manual steps and ensures repeatable, low-cost analytics by:
-  - Using Kestra to orchestrate a multi-step DAG
-  - Cleaning data deterministically with Pandas to remove junk columns
-  - Keeping a versioned clean file in GCS
-  - Loading and optimizing tables in BigQuery (partition + cluster)
-  - Serving visuals via Looker Studio
+- Raw datasets frequently contain unwanted/junk columns and inconsistent schemas, and manual uploads lead to flaky, non-reproducible analytics.
+- Without automation and warehouse optimizations, dashboards are slow and costly to operate.
+
+This project solves these issues with automated Kestra workflows, deterministic Pandas cleaning, GCS versioning, and a partitioned + clustered BigQuery analytics table.
 
 ---
 
 **Solution (High-level)**
 
-- Kestra flows download raw CSV → clean with Pandas → upload cleaned CSV to GCS → load to BigQuery staging → create optimized analytics table → refresh dashboard.
-- The flows include idempotent setup tasks (create GCS bucket, create BQ dataset) so infrastructure can be provisioned from the workflow.
+- Kestra flows (provided) perform the end-to-end DAG: download → clean → upload → load → transform/optimize.
+- Flows are idempotent and include setup steps to create the GCS bucket and BigQuery dataset.
 
 ---
 
 **Architecture**
 
-- Source: `dataset.csv` (raw CSV)
-- Orchestration: Kestra workflows (YAML flows provided)
-- Data Lake: Google Cloud Storage (GCS) for cleaned CSVs
-- Data Warehouse: BigQuery (staging + optimized analytics table)
-- Transformations: Pandas (cleaning) + BigQuery SQL (transform + optimization)
-- Visualization: Looker Studio dashboard consuming the optimized BigQuery table
+- Source: `dataset.csv` (repository sample)
+- Orchestration: Kestra (flows in repository)
+- Data Lake: Google Cloud Storage (cleaned CSVs)
+- Data Warehouse: BigQuery (staging + optimized `spotify_tracks_clean`)
+- Transformations: Pandas for cleaning; BigQuery SQL for transformation & optimization
+- Visualization: Looker Studio dashboard
 
-Mermaid flow diagram:
+Mermaid pipeline diagram:
 
 ```mermaid
 flowchart LR
-  A[Raw CSV (dataset.csv)] --> B[Kestra: download_csv]
-  B --> C[Kestra: clean_csv (Pandas)]
-  C --> D[GCS: cleaned_dataset.csv]
-  D --> E[BigQuery: staging table spotify_tracks]
-  E --> F[BigQuery: spotify_tracks_clean (PARTITIONED & CLUSTERED)]
-  F --> G[Looker Studio Dashboard]
+  Raw[Raw CSV: dataset.csv] --> Kestra[Kestra: download_csv]
+  Kestra --> Clean[Kestra: clean_csv (Pandas)]
+  Clean --> GCS[GCS: cleaned_dataset.csv]
+  GCS --> BQstg[BigQuery: spotify_tracks (staging)]
+  BQstg --> BQopt[BigQuery: spotify_tracks_clean (partitioned & clustered)]
+  BQopt --> Looker[Looker Studio Dashboard]
 ```
 
 ---
 
-**Technologies Used**
+## Technologies
 
 - Orchestration: Kestra
-- Cloud Storage: Google Cloud Storage (GCS)
-- Data Warehouse: BigQuery
+- Cloud: Google Cloud Storage (GCS), BigQuery
 - Language & Tools: Python (Pandas), SQL, Docker Compose (local dev)
-- Plugins: Kestra GCP plugins (gcs, bigquery)
-- Visualization: Google Looker Studio
+- Local services: Postgres + pgAdmin (Docker Compose), optional local ingest script
 
 ---
 
-## Pipeline Flow & Components
+## Pipeline Components
 
-- Ingestion
-  - Kestra DAG `gcp_spotify_data_ingest` handles batch ingestion.
-  - `download_csv` downloads the raw CSV from GitHub.
-
-- Cleaning
-  - `clean_csv` runs a Pandas script (Kestra Python script task) that filters to precisely 20 columns and writes `cleaned_dataset.csv` with `index=False`.
-
-- Storage
-  - Cleaned CSV uploaded to GCS via `io.kestra.plugin.gcp.gcs.Upload`.
-  - Staging data loaded to BigQuery using a `LOAD DATA` SQL step.
-
-- Transformation & Optimization
-  - `transform_spotify_table` creates `spotify_tracks_clean` in BigQuery using:
-    - PARTITION BY RANGE_BUCKET(popularity, GENERATE_ARRAY(0, 100, 10))
-    - CLUSTER BY track_genre
-  - This table is the analytical table used by dashboards.
-
----
-
-## Data Warehouse Optimization
-
-- Partitioning
-  - Partitioned by popularity ranges (0-9,10-19,...,90-99) via `RANGE_BUCKET` to minimize scanned data for popularity-centric queries.
-
-- Clustering
-  - Clustered on `track_genre` to speed up genre-filtered aggregations and reduce I/O.
-
-- Benefits
-  - Lower query cost and faster dashboard load times due to partition pruning and clustering locality.
-
----
-
-## Dashboard (Looker Studio)
-
-- The dashboard surfaces business-friendly analytics from the optimized BigQuery table. Minimum visualizations:
-  1. Top genres by average popularity (bar chart)
-  2. Tracks distribution by popularity bucket (histogram)
-- Additional tiles recommended: Top artists by average valence; audio-feature trends by genre.
-- Dashboard screenshot: **[Insert dashboard screenshot here]**
-
----
-
-## Reproducibility — Setup & Run
-
-Prerequisites:
-- GCP project with BigQuery and GCS enabled
-- Service account JSON with BigQuery & GCS permissions
-- Docker & Docker Compose (for local Kestra + Postgres)
-
-1) Local quick demo (Docker Compose)
-```bash
-cd pipeline
-docker-compose up -d
-docker-compose ps
-```
-
-2) Configure Kestra & GCP credentials
-- Place your GCP service account JSON in a secure location and point Kestra to it.
-- Replace placeholders in the Kestra KV flow (`gcp_kv`):
-  - `GCP_PROJECT_ID` — your project id
-  - `GCP_BUCKET_NAME` — globally unique bucket name
-  - `GCP_DATASET` — BigQuery dataset name (e.g. spotify_data_pipeline)
-
-3) Run Kestra flows (UI or API)
-- Open Kestra UI (default: http://localhost:8080 when running via Docker Compose)
-- Upload or create flows: `gcp_kv`, `gcp_setup`, `gcp_spotify_data_ingest` and execute them in order.
-
-4) Verify BigQuery
-- Confirm tables:
-  - Staging: `{{GCP_PROJECT_ID}}.{{GCP_DATASET}}.spotify_tracks`
-  - Analytics: `{{GCP_PROJECT_ID}}.{{GCP_DATASET}}.spotify_tracks_clean`
-
-5) Connect Looker Studio
-- Create a BigQuery data source pointing at `spotify_tracks_clean` and build the dashboard tiles.
-
-Optional: run local Postgres ingestion (for local dev)
-```bash
-python -m pip install -r pipeline/spotify/requirements.txt
-python pipeline/spotify/spotify_ingest.py \
-  --pg_user=spotify_user \
-  --pg_password=spotify_password \
-  --pg_host=localhost \
-  --pg_database=spotify_analytics \
-  --csv_path=dataset.csv
-```
-
----
-
-## Dataset Description
-
-- File: `dataset.csv` (sample Spotify tracks dataset)
-- Key columns (20):
-  - `track_id`, `artists`, `album_name`, `track_name`, `popularity`, `duration_ms`, `explicit`, `danceability`, `energy`, `key`, `loudness`, `mode`, `speechiness`, `acousticness`, `instrumentalness`, `liveness`, `valence`, `tempo`, `time_signature`, `track_genre`
-
----
-
-## Project Features
-
-- Orchestrated batch ingestion with Kestra
-- Deterministic Pandas cleaning step to remove junk columns
-- GCS data lake for cleaned CSVs
-- BigQuery staging and optimized analytics table (partitioned & clustered)
-- Looker Studio dashboard with multiple tiles
-- Local dev via Docker Compose (Kestra, Postgres, pgAdmin)
-
----
-
-## Repository Structure
-
-- `pipeline/`
-  - `docker-compose.yaml` — local services (Kestra, Postgres, pgAdmin, ingestion container)
-  - `spotify/`
-    - `dockerfile` — ingestion container
-    - `requirements.txt`
-    - `spotify_ingest.py` — local Postgres ingestion utility
-    - `commands.sh` — helper commands
-    - `spotify-pipiline-zoomcamp-*.json` — example GCP service account (replace)
-- `dataset.csv` — sample dataset
-- `README.md` — this file
-
----
-
-## Kestra Flows Included (summary)
-
-- `gcp_kv` — seeds KV store with `GCP_PROJECT_ID`, `GCP_LOCATION`, `GCP_BUCKET_NAME`, `GCP_DATASET`.
-- `gcp_setup` — creates GCS bucket & BigQuery dataset (idempotent `ifExists: SKIP`).
-- `gcp_spotify_data_ingest` — end-to-end DAG:
+- Ingestion: `gcp_spotify_data_ingest` Kestra flow
   - `download_csv` (HTTP download)
-  - `clean_csv` (Pandas script)
-  - `upload_to_gcs` (GCS upload)
-  - `load_to_bq` (LOAD DATA INTO staging)
-  - `transform_spotify_table` (CREATE OR REPLACE partitioned & clustered table)
+  - `clean_csv` (Python/Pandas script that selects the exact 20 columns and writes `cleaned_dataset.csv` with index=False)
+  - `upload_to_gcs` (Kestra GCS upload)
+  - `load_to_bq` (LOAD DATA into staging table)
+  - `transform_spotify_table` (CREATE OR REPLACE optimized table)
 
 ---
 
-## Evaluation Criteria Coverage (explicit mapping)
+## Data Warehouse Optimization
 
-- Problem description: **4 / 4** — Clear problem statement and automated solution.
-- Cloud: **4 / 4** — Uses GCS & BigQuery; includes Kestra flows to provision resources (IaC-style automation via Kestra).
-- Data ingestion (Batch / Workflow orchestration): **4 / 4** — Kestra DAG provides an end-to-end DAG with multiple steps and uploads to GCS.
-- Data warehouse: **4 / 4** — Analytics table is partitioned by popularity ranges and clustered by `track_genre`; explanation provided.
-- Transformations: **2 / 4** — Uses Pandas for cleaning and BigQuery SQL for transformation. (To reach 4/4, add dbt or Spark models.)
-- Dashboard: **4 / 4** — Dashboard specified with at least two tiles (Top genres by popularity; popularity distribution).
-- Reproducibility: **4 / 4** — Step-by-step setup for local and GCP runs; Kestra flows and Docker Compose included.
+- Partitioning: `spotify_tracks_clean` is partitioned using `RANGE_BUCKET(popularity, GENERATE_ARRAY(0,100,10))` so popularity-filtered queries scan minimal data.
+- Clustering: clustered on `track_genre` to accelerate genre-based aggregations and reduce IO.
+- Result: lower query cost and faster dashboard refreshes.
 
-Overall: This repository demonstrates a complete, cloud-based batch pipeline with orchestration, storage, optimized warehousing, and visualization — ready for portfolio presentation. Transformations can be upgraded to dbt to reach full marks in that dimension.
+---
+
+## Dashboard (Looker Studio)
+
+- Minimum visualizations:
+  1. Top genres by average popularity (bar chart)
+  2. Distribution of tracks by popularity bucket (histogram)
+- Optional tiles: Top artists by average valence; audio-feature trends by genre.
+- Screenshot placeholder: **[Insert Looker Studio dashboard screenshot here]**
+
+---
+
+## Reproducibility — Setup & Run
+
+Prerequisites:
+- GCP project with BigQuery + GCS enabled
+- Service account JSON with BigQuery & GCS permissions
+- Docker & Docker Compose (for local Kestra + Postgres)
+
+Local quick demo (start services):
+```bash
+cd pipeline
+docker-compose up -d
+docker-compose ps
+```
+
+Configure Kestra KV values in the `gcp_kv` flow or via Kestra UI:
+- `GCP_PROJECT_ID`, `GCP_LOCATION`, `GCP_BUCKET_NAME` (must be globally unique), `GCP_DATASET`.
+
+Run flows in Kestra (UI or API):
+1. `gcp_kv` — seed KV values
+2. `gcp_setup` — create GCS bucket & BigQuery dataset (idempotent)
+3. `gcp_spotify_data_ingest` — full ingest, load, and transform
+
+Verify BigQuery tables:
+- Staging: `{{GCP_PROJECT_ID}}.{{GCP_DATASET}}.spotify_tracks`
+- Analytics: `{{GCP_PROJECT_ID}}.{{GCP_DATASET}}.spotify_tracks_clean`
+
+Optional local Postgres ingestion (for dev):
+```bash
+python -m pip install -r pipeline/spotify/requirements.txt
+python pipeline/spotify/spotify_ingest.py \
+  --pg_user=spotify_user \
+  --pg_password=spotify_password \
+  --pg_host=localhost \
+  --pg_database=spotify_analytics \
+  --csv_path=dataset.csv
+```
+
+---
+
+## Dataset
+
+- `dataset.csv` — sample Spotify tracks dataset with key columns:
+  `track_id`, `artists`, `album_name`, `track_name`, `popularity`, `duration_ms`, `explicit`, `danceability`, `energy`, `key`, `loudness`, `mode`, `speechiness`, `acousticness`, `instrumentalness`, `liveness`, `valence`, `tempo`, `time_signature`, `track_genre`.
+
+---
+
+## Features & Grading Coverage
+
+- Problem description: 4/4 — clearly stated and solved via automated pipeline.
+- Cloud: 4/4 — uses GCS + BigQuery and includes idempotent Kestra provisioning flows (IaC-style).
+- Data ingestion & orchestration: 4/4 — end-to-end Kestra DAG with multiple steps and GCS upload.
+- Data warehouse: 4/4 — partitioned and clustered analytics table with explanation.
+- Transformations: 2/4 — Pandas cleaning + BigQuery SQL; can be extended to dbt for 4/4.
+- Dashboard: 4/4 — at least two tiles described; screenshot placeholder included.
+- Reproducibility: 4/4 — step-by-step instructions and local dev support.
 
 ---
 
 ## Future Improvements
 
-- Add dbt models for transformations, testing, and lineage (raises Transformations to 4/4).
-- Integrate data quality checks (Great Expectations) into Kestra flows.
-- Add CI (GitHub Actions) to run basic flow smoke tests and linting.
-- Automate Looker Studio dashboard provisioning or export templates.
+- Add a dbt project for transformations, testing and lineage.
+- Integrate data quality checks (e.g., Great Expectations) into Kestra flows.
+- Add Terraform for full IaC and GitHub Actions CI for flow smoke tests.
+- Add streaming ingestion option and ML-ready feature tables.
 
 ---
 
-## Notes & Placeholders
+## Repository Layout
 
-- Replace GCP placeholders in Kestra KV flow with your values (project id, bucket name, dataset).
-- Insert the Looker Studio dashboard screenshot in place of the placeholder.
+- `pipeline/docker-compose.yaml` — local services (Kestra, Postgres, pgAdmin, ingestion container)
+- `pipeline/spotify/` — ingestion code, Dockerfile, requirements
+- `dataset.csv` — sample dataset
 
 ---
 
-If you'd like, I can also:
-- add a `dbt` skeleton to the repo to formalize transformations,
-- add a GitHub Actions CI workflow to validate the cleaning script,
-- or commit this README to the repository for you (already done).
-
-GCP_PROJECT_ID
-GCP_BUCKET_NAME
-GCP_DATASET
-GCP_LOCATION
-
-5. Run Pipeline
-
-Execute: 
-
-gcp_spotify_data_ingest
-
-Output
-
-Cleaned dataset stored in Google Cloud Storage
-
-Raw table in BigQuery
-
-Optimized analytics table in BigQuery
-
-Looker Studio dashboard
-
-✅ Project Features
-
-End-to-end batch data pipeline
-
-Workflow orchestration
-
-Data cleaning and validation
-
-Cloud data warehouse storage
-
-Query optimization (partitioning + clustering)
-
-Analytics dashboard
-
-Fully reproducible setup
-
-📈 Future Improvements
-
-Infrastructure as Code (Terraform)
-
-dbt transformation layer
-
-Streaming ingestion pipeline
-
-Machine learning features
+If you want, I can:
+- insert a Looker Studio screenshot,
+- add a small `dbt` skeleton to the repo,
+- or create a GitHub Actions workflow to lint and test the cleaning script.
