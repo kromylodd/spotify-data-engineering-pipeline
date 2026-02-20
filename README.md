@@ -76,11 +76,18 @@ Raw CSV (`dataset.csv`) → Kestra download → Pandas cleaning → GCS (cleaned
 
 ## Dashboard (Looker Studio)
 
-- Minimum visualizations:
-  1. Top genres by average popularity (bar chart)
-  2. Distribution of tracks across popularity buckets (histogram)
-- Optional tiles: Top artists by valence; audio-feature trends by genre.
-- Placeholder: **[Insert Looker Studio dashboard screenshot here]**
+Minimum visualizations:
+
+- Top genres by average popularity (bar chart)
+- Distribution of tracks across popularity buckets (histogram)
+
+Optional tiles:
+
+- Top artists by valence
+- Audio‑feature trends by genre
+
+Placeholder: **[Insert Looker Studio dashboard screenshot here]**
+
 
 ---
 
