@@ -125,6 +125,8 @@ python pipeline/spotify/spotify_ingest.py \
 
 ## Dataset
 
+Source: https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset
+
 - `dataset.csv` — sample Spotify tracks dataset with key columns:
   `track_id`, `artists`, `album_name`, `track_name`, `popularity`, `duration_ms`, `explicit`, `danceability`, `energy`, `key`, `loudness`, `mode`, `speechiness`, `acousticness`, `instrumentalness`, `liveness`, `valence`, `tempo`, `time_signature`, `track_genre`.
 
