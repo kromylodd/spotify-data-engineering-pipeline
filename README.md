@@ -81,11 +81,6 @@ Minimum visualizations:
 - Top genres by average popularity (bar chart)
 - Distribution of tracks across popularity buckets (histogram)
 
-Optional tiles:
-
-- Top artists by valence
-- Audio‑feature trends by genre
-
 <img width="895" height="433" alt="image" src="https://github.com/user-attachments/assets/49af0460-124d-4ab7-96d1-a5c2b72aac49" />
 
 
