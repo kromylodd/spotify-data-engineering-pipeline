@@ -81,8 +81,7 @@ Minimum visualizations:
 - Top genres by average popularity (bar chart)
 - Distribution of tracks across popularity buckets (histogram)
 
-<img width="895" height="433" alt="image" src="https://github.com/user-attachments/assets/49af0460-124d-4ab7-96d1-a5c2b72aac49" />
-
+<img width="840" height="412" alt="image" src="https://github.com/user-attachments/assets/6807770c-cdf2-4af0-af4a-c5f626792700" />
 
 
 ---
