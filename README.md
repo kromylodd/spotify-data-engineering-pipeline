@@ -78,8 +78,8 @@ Raw CSV (`dataset.csv`) → Kestra download → Pandas cleaning → GCS (cleaned
 
 Minimum visualizations:
 
-- Top genres by average popularity (bar chart)
-- Distribution of tracks across popularity buckets (histogram)
+- Top genres by average popularity 
+- Distribution of tracks across popularity buckets 
 
 <img width="840" height="412" alt="image" src="https://github.com/user-attachments/assets/6807770c-cdf2-4af0-af4a-c5f626792700" />
 
