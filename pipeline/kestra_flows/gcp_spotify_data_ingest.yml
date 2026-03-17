@@ -1,0 +1,109 @@
+id: gcp_spotify_data_ingest
+namespace: spotify-data-pipeline
+
+description: "Clean Ingestion: Removes junk columns and handles extraction correctly"
+
+variables:
+  file_name: "cleaned_dataset.csv"
+  gcs_file: "gs://{{kv('GCP_BUCKET_NAME')}}/{{vars.file_name}}"
+
+tasks:
+  # 1. Download file using Kestra's internal tool (No curl needed)
+  - id: download_csv
+    type: io.kestra.plugin.core.http.Download
+    uri: "https://raw.githubusercontent.com/kromylodd/spotify-data-engineering-pipeline/main/dataset.csv"
+
+  # 2. Clean file using a Python script (handles the 'junk' columns)
+  # 2. Clean file using Pandas (ensures exact column count)
+  - id: clean_csv
+    type: io.kestra.plugin.scripts.python.Script
+    containerImage: python:3.11-slim
+    beforeCommands:
+      - pip install pandas
+    inputFiles:
+      raw.csv: "{{outputs.download_csv.uri}}"
+    outputFiles:
+      - "{{vars.file_name}}"
+    script: |
+      import pandas as pd
+      
+      # Load the data
+      df = pd.read_csv('raw.csv')
+      
+      # Define the 20 columns we actually want
+      cols_to_keep = [
+          "track_id", "artists", "album_name", "track_name", "popularity", 
+          "duration_ms", "explicit", "danceability", "energy", "key", 
+          "loudness", "mode", "speechiness", "acousticness", "instrumentalness", 
+          "liveness", "valence", "tempo", "time_signature", "track_genre"
+      ]
+      
+      # Filter to only these columns (this kills 'index' and 'Unnamed: 0' safely)
+      df_clean = df[cols_to_keep]
+      
+      # Save with index=False to ensure we don't add a new junk column
+      df_clean.to_csv('{{vars.file_name}}', index=False)
+
+  # 3. Upload to GCS
+  - id: upload_to_gcs
+    type: io.kestra.plugin.gcp.gcs.Upload
+    from: "{{outputs.clean_csv.outputFiles[vars.file_name]}}"
+    to: "{{render(vars.gcs_file)}}"
+
+  # 4. Create/Refresh Table and Load Data
+  - id: load_to_bq
+    type: io.kestra.plugin.gcp.bigquery.Query
+    sql: |
+      LOAD DATA OVERWRITE `{{kv('GCP_PROJECT_ID')}}.{{kv('GCP_DATASET')}}.spotify_tracks`
+      (
+        track_id STRING, artists STRING, album_name STRING, track_name STRING, 
+        popularity INT64, duration_ms INT64, explicit BOOL, danceability FLOAT64, 
+        energy FLOAT64, key INT64, loudness FLOAT64, mode INT64, speechiness FLOAT64, 
+        acousticness FLOAT64, instrumentalness FLOAT64, liveness FLOAT64, 
+        valence FLOAT64, tempo FLOAT64, time_signature INT64, track_genre STRING
+      )
+      FROM FILES (
+        format = 'CSV',
+        uris = ['{{render(vars.gcs_file)}}'],
+        skip_leading_rows = 1
+      );
+    # 5. Transform + Optimize table 
+  - id: transform_spotify_table
+    type: io.kestra.plugin.gcp.bigquery.Query
+    sql: |
+      CREATE OR REPLACE TABLE `spotify-pipiline-zoomcamp.spotify_data_pipeline.spotify_tracks_clean`
+      PARTITION BY RANGE_BUCKET(popularity, GENERATE_ARRAY(0, 100, 10))
+      CLUSTER BY track_genre
+      AS
+      SELECT
+        track_id,
+        artists,
+        album_name,
+        track_name,
+        popularity,
+        duration_ms,
+        explicit,
+        danceability,
+        energy,
+        key,
+        loudness,
+        mode,
+        speechiness,
+        acousticness,
+        instrumentalness,
+        liveness,
+        valence,
+        tempo,
+        time_signature,
+        track_genre
+      FROM `spotify-pipiline-zoomcamp.spotify_data_pipeline.spotify_tracks`
+      WHERE track_id IS NOT NULL;
+
+
+pluginDefaults:
+  - type: io.kestra.plugin.gcp 
+    values: 
+      serviceAccount: "{{kv('GCP_CREDS')}}" 
+      projectId: "{{kv('GCP_PROJECT_ID')}}" 
+      location: "{{kv('GCP_LOCATION')}}" 
+      bucket: "{{kv('GCP_BUCKET_NAME')}}"
