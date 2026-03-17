@@ -6,7 +6,7 @@ tasks:
     type: io.kestra.plugin.core.kv.Set
     key: GCP_PROJECT_ID
     kvType: STRING
-    value: spotify-pipiline-zoomcamp # TODO replace with your project id
+    value: your_project_id # TODO replace with your project id
 
   - id: gcp_location
     type: io.kestra.plugin.core.kv.Set
@@ -18,10 +18,10 @@ tasks:
     type: io.kestra.plugin.core.kv.Set
     key: GCP_BUCKET_NAME
     kvType: STRING
-    value: spotify-pipiline-zoomcamp # TODO make sure it's globally unique!
+    value: your_bucket_name # TODO make sure it's globally unique!
 
   - id: gcp_dataset
     type: io.kestra.plugin.core.kv.Set
     key: GCP_DATASET
     kvType: STRING
-    value: spotify_data_pipeline
+    value: your_dataset_name # TODO replace with your dataset name

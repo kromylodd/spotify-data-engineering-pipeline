@@ -71,7 +71,7 @@ tasks:
   - id: transform_spotify_table
     type: io.kestra.plugin.gcp.bigquery.Query
     sql: |
-      CREATE OR REPLACE TABLE `spotify-pipiline-zoomcamp.spotify_data_pipeline.spotify_tracks_clean`
+      CREATE OR REPLACE TABLE `{{kv('GCP_PROJECT_ID')}}.{{kv('GCP_DATASET')}}.spotify_tracks_clean`
       PARTITION BY RANGE_BUCKET(popularity, GENERATE_ARRAY(0, 100, 10))
       CLUSTER BY track_genre
       AS
@@ -96,7 +96,7 @@ tasks:
         tempo,
         time_signature,
         track_genre
-      FROM `spotify-pipiline-zoomcamp.spotify_data_pipeline.spotify_tracks`
+      FROM `{{kv('GCP_PROJECT_ID')}}.{{kv('GCP_DATASET')}}.spotify_tracks`
       WHERE track_id IS NOT NULL;
 
 
