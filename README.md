@@ -146,6 +146,7 @@ Source: https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset
 ## Repository Structure
 
 - `pipeline/docker-compose.yaml` — local services (Kestra, Postgres, pgAdmin, ingestion container)
+- `pipeline/kestra_flows/` — `gcp_kv.yml`, `gcp_setup.yml`, `gcp_spotify_data_ingest.yml` 
 - `pipeline/spotify/` — ingestion code, Dockerfile, requirements.txt, `spotify_ingest.py`
 - `dataset.csv` — sample dataset
 - `README.md` — this file
